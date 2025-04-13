@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ゲーミフィケーションポモドーロ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>ポモドーロタイマー</h1>
+    <div class="timer">
+      <span id="minutes">25</span>:<span id="seconds">00</span>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">スタート</button>
+      <button id="resetBtn">リセット</button>
+    </div>
+
+    <div class="stats">
+      <p>ポイント: <span id="points">0</span></p>
+      <p>レベル: <span id="level">1</span></p>
+    </div>
+
+    <div class="log">
+      <h2>作業ログ</h2>
+      <ul id="logList"></ul>
+    </div>
+  </div>
+
+  <!-- JavaScript を読み込む -->
+  <script src="script.js"></script>
+</body>
+</html>

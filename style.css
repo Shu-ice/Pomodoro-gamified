@@ -1,0 +1,78 @@
+/* 全体の基本スタイル */
+body {
+    background-color: #f4f4f9;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* コンテナ中央寄せ */
+  .container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* タイトル */
+  h1 {
+    margin-bottom: 20px;
+  }
+  
+  /* タイマー表示 */
+  .timer {
+    font-size: 48px;
+    margin: 20px 0;
+    font-weight: bold;
+  }
+  
+  /* ボタン配置 */
+  .controls button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  
+  .controls button:hover {
+    background-color: #45a049;
+  }
+  
+  /* ポイントとレベル表示 */
+  .stats p {
+    font-size: 18px;
+    margin: 5px 0;
+  }
+  
+  /* 作業ログ */
+  .log {
+    margin-top: 20px;
+  }
+  
+  .log h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  #logList {
+    list-style: none;
+    padding: 0;
+  }
+  
+  #logList li {
+    background-color: #e7f3ff;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 5px;
+    text-align: left;
+  }
+  
