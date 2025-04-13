@@ -9,8 +9,16 @@
 <body>
   <div class="container">
     <h1>ポモドーロタイマー</h1>
-    <div class="timer">
-      <span id="minutes">25</span>:<span id="seconds">00</span>
+    <div class="timer-container">
+      <div class="progress-ring">
+        <svg class="progress-ring__circle" width="300" height="300">
+          <circle class="progress-ring__circle-bg" cx="150" cy="150" r="120" />
+          <circle class="progress-ring__circle-progress" cx="150" cy="150" r="120" />
+        </svg>
+        <div class="timer">
+          <span id="minutes">25</span>:<span id="seconds">00</span>
+        </div>
+      </div>
     </div>
 
     <div class="controls">
@@ -18,14 +26,28 @@
       <button id="resetBtn">リセット</button>
     </div>
 
-    <div class="stats">
-      <p>ポイント: <span id="points">0</span></p>
-      <p>レベル: <span id="level">1</span></p>
+    <div class="gamification-stats">
+      <div class="stat-item level-stat">
+        <span class="stat-label">レベル</span>
+        <span id="level" class="stat-value">1</span>
+      </div>
+      <div class="stat-item points-stat">
+        <span class="stat-label">ポイント</span>
+        <span id="points" class="stat-value">0</span>
+        <div class="points-bar-container">
+          <div id="pointsBar" class="points-bar"></div>
+        </div>
+        <span id="nextLevelPoints" class="next-level-info">次のレベルまで: 100</span>
+      </div>
     </div>
 
     <div class="log">
       <h2>作業ログ</h2>
       <ul id="logList"></ul>
+    </div>
+
+    <div class="navigation">
+      <a href="history.html" class="nav-link">履歴を見る</a>
     </div>
   </div>
 

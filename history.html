@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ポモドーロ履歴</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>ポモドーロ履歴</h1>
+    
+    <div class="history-filters">
+      <select id="dateFilter">
+        <option value="all">すべての期間</option>
+        <option value="today">今日</option>
+        <option value="week">今週</option>
+        <option value="month">今月</option>
+      </select>
+    </div>
+
+    <div class="history-stats">
+      <div class="stat-card">
+        <h3>総作業時間</h3>
+        <p id="totalTime">0時間</p>
+      </div>
+      <div class="stat-card">
+        <h3>完了したポモドーロ</h3>
+        <p id="completedPomodoros">0回</p>
+      </div>
+    </div>
+
+    <div class="history-list">
+      <h2>詳細履歴</h2>
+      <div id="historyItems" class="history-items">
+        <!-- 履歴アイテムはJavaScriptで動的に追加されます -->
+      </div>
+    </div>
+
+    <div class="navigation">
+      <a href="index.html" class="nav-link">タイマーに戻る</a>
+    </div>
+  </div>
+
+  <script src="history.js"></script>
+</body>
+</html> 
