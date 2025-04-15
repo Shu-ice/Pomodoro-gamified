@@ -4,6 +4,17 @@
   --text-color: #1D1D1F;
   --border-radius: 12px;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --container-width: 320px;
+  --container-height: 580px;
+  --transition: all 0.3s ease;
+}
+
+/* ナイトモード用の変数 */
+[data-theme="dark"] {
+  --primary-color: #0A84FF;
+  --background-color: #1C1C1E;
+  --text-color: #FFFFFF;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -20,16 +31,354 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: var(--transition);
 }
 
 .container {
-  background: white;
-  padding: 2rem;
+  background: var(--background-color);
+  padding: 0.8rem;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  width: 90%;
-  max-width: 500px;
-  text-align: center;
+  width: var(--container-width);
+  height: var(--container-height);
+    text-align: center;
+  overflow-y: auto;
+  transition: var(--transition);
+  z-index: 1000;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.container.fixed {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+}
+
+/* ヘッダーとナビゲーション */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+.header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+    margin: 0;
+    padding: 0;
+  }
+  
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.main-nav {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1rem;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.6;
+  transition: var(--transition);
+}
+
+.nav-item.active {
+  opacity: 1;
+  background: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius);
+}
+
+/* ページ切り替え */
+.page {
+  display: none;
+  height: calc(100% - 120px);
+  overflow-y: auto;
+}
+
+.page.active {
+  display: block;
+}
+
+/* レベル表示のスタイル */
+.level-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius);
+}
+
+.level-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.level-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary-color) 0% 0%, #E5E5E5 0% 100%);
+  transform: rotate(-90deg);
+}
+
+.level-progress-bar {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--background-color);
+  transform: rotate(0deg);
+  transition: var(--transition);
+}
+
+.level-info {
+  text-align: left;
+}
+
+.points-display {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-top: 1rem;
+}
+
+.points-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* 履歴ページのスタイル */
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.calendar {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.calendar-day.has-data {
+  background: var(--primary-color);
+  color: white;
+}
+
+.chart-container {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  height: 200px;
+}
+
+.level-progress-chart {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  height: 200px;
+}
+
+.history-list {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+#historyList {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+#historyList li {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 設定ページのスタイル */
+.settings-panel {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+.settings-group {
+  margin-bottom: 1.5rem;
+}
+
+.settings-group h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius);
+}
+
+.settings-row input[type="number"] {
+  width: 60px;
+  padding: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
+.settings-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+/* 最小化ボタンのスタイル */
+.minimize-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-color);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition);
+  opacity: 0.6;
+}
+
+.minimize-btn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* 最小化状態のスタイル */
+.container.minimized {
+  height: 200px;
+  width: 200px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+}
+
+.container.minimized .content {
+  display: none;
+}
+
+.container.minimized .minimized-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.container.minimized .progress-ring {
+  width: 180px;
+  height: 180px;
+}
+
+.container.minimized .timer {
+  font-size: 2rem;
+  pointer-events: none;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .container.fixed {
+    position: fixed;
+    width: var(--container-width);
+    height: var(--container-height);
+    border-radius: var(--border-radius);
+    top: auto;
+    left: auto;
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .timer {
+    font-size: 2.5rem;
+  }
 }
 
 h1 {
@@ -38,14 +387,23 @@ h1 {
   font-weight: 600;
 }
 
+/* タイマー関連のスタイル */
 .timer-container {
   position: relative;
-  margin: 2rem 0;
+  margin: 0.8rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
 }
 
 .progress-ring {
   position: relative;
-  margin: 0 auto;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .progress-ring__circle {
@@ -54,7 +412,7 @@ h1 {
 
 .progress-ring__circle-bg {
   fill: none;
-  stroke: #E5E5E5;
+  stroke: rgba(0, 0, 0, 0.1);
   stroke-width: 8;
 }
 
@@ -71,27 +429,52 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  pointer-events: none;
 }
 
+/* コントロールボタンのスタイル */
 .controls {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin: 2rem 0;
+  margin: 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.minimized-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.minimized-controls button {
+  padding: 0.5rem;
+  font-size: 0.9rem;
 }
 
 button {
   background-color: var(--primary-color);
   color: white;
-  border: none;
-  padding: 0.8rem 2rem;
+    border: none;
+  padding: 0.8rem 1.5rem;
   border-radius: var(--border-radius);
   font-size: 1rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    cursor: pointer;
+  transition: var(--transition);
 }
 
 button:hover {
@@ -104,21 +487,21 @@ button:hover {
   font-size: 1.2rem;
 }
 
-.log {
+  .log {
   margin-top: 2rem;
   text-align: left;
-}
-
-.log h2 {
+  }
+  
+  .log h2 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-}
-
-#logList {
-  list-style: none;
-}
-
-#logList li {
+  }
+  
+  #logList {
+    list-style: none;
+  }
+  
+  #logList li {
   padding: 0.5rem 0;
   border-bottom: 1px solid #E5E5E5;
 }
@@ -336,5 +719,5 @@ button:hover {
   20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
   80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-}
+  }
   
