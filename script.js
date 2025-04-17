@@ -342,6 +342,8 @@ function initCalendar() {
 
 // カレンダーの更新
 function updateCalendar(year, month) {
+  if (!calendarGrid || !currentMonthDisplay) return;
+  
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
@@ -656,3 +658,109 @@ function updateMinimizedTimer() {
     });
   }
 }
+
+// 最小化機能
+minimizeBtn.addEventListener('click', () => {
+  container.classList.toggle('minimized');
+  minimizeBtn.textContent = container.classList.contains('minimized') ? '+' : '−';
+  
+  if (container.classList.contains('minimized')) {
+    // 縮小時のタイマー表示を更新
+    updateMinimizedTimer();
+  } else {
+    // 通常表示に戻したときの処理
+    minimizedTimer.innerHTML = ''; // 内容をクリア
+  }
+});
+
+// 縮小表示をクリックすると元に戻る機能
+if (minimizedTimer) {
+  minimizedTimer.addEventListener('click', (e) => {
+    // ボタンのクリックイベントがバブリングしないように
+    if (e.target.tagName !== 'BUTTON') {
+      container.classList.remove('minimized');
+      minimizeBtn.textContent = '−';
+      minimizedTimer.innerHTML = ''; // 内容をクリア
+    }
+  });
+}
+
+// ドキュメントのロード完了時の処理
+document.addEventListener('DOMContentLoaded', () => {
+  // 保存されている設定を読み込む
+  const savedWorkTime = localStorage.getItem('workTime');
+  const savedBreakTime = localStorage.getItem('breakTime');
+  const savedLongBreakTime = localStorage.getItem('longBreakTime');
+  const savedSessions = localStorage.getItem('sessionsBeforeLongBreak');
+  
+  if (savedWorkTime) workTimeInput.value = savedWorkTime;
+  if (savedBreakTime) breakTimeInput.value = savedBreakTime;
+  if (savedLongBreakTime) longBreakTimeInput.value = savedLongBreakTime;
+  if (savedSessions) sessionsInput.value = savedSessions;
+  
+  // 設定を適用
+  updateSettings();
+  
+  // ポイントとレベルを保存されたデータから読み込む
+  const savedPoints = localStorage.getItem('points');
+  const savedLevel = localStorage.getItem('level');
+  const savedLevelProgress = localStorage.getItem('levelProgress');
+  
+  if (savedPoints) points = parseInt(savedPoints);
+  if (savedLevel) level = parseInt(savedLevel);
+  if (savedLevelProgress) levelProgress = parseInt(savedLevelProgress);
+  
+  // 表示を更新
+  pointsDisplay.textContent = points;
+  levelDisplay.textContent = level;
+  updatePointsBar();
+  
+  // 履歴の表示を更新
+  updateHistoryDisplay();
+  
+  // カレンダーとグラフを初期化
+  initCalendar();
+  initCharts();
+});
+
+// イベントリスナーの設定
+if (startBtn) startBtn.addEventListener('click', startTimer);
+if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => {
+  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+});
+if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => {
+  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+});
+
+// 設定の変更を監視
+if (workTimeInput) workTimeInput.addEventListener('change', updateSettings);
+if (breakTimeInput) breakTimeInput.addEventListener('change', updateSettings);
+if (longBreakTimeInput) longBreakTimeInput.addEventListener('change', updateSettings);
+if (sessionsInput) sessionsInput.addEventListener('change', updateSettings);
+
+// アプリケーション終了時（ページ移動・タブ閉じる時）にデータ保存
+window.addEventListener('beforeunload', () => {
+  // ポイント、レベル、進捗を保存
+  localStorage.setItem('points', points);
+  localStorage.setItem('level', level);
+  localStorage.setItem('levelProgress', levelProgress);
+  
+  // 履歴も保存
+  saveHistory();
+});
+
+// カスタムイベント - 円形アニメーション完了時
+document.addEventListener('animationComplete', () => {
+  console.log('アニメーション完了');
+});
+
+// 初期表示
+updateTimer();
+if (typeof updatePointsBar === 'function') updatePointsBar();
+if (typeof initCalendar === 'function') initCalendar();
+if (typeof initCharts === 'function') initCharts();
