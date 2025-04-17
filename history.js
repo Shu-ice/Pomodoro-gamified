@@ -8,10 +8,14 @@ const completedPomodorosDisplay = document.getElementById('completedPomodoros');
 const historyItems = document.getElementById('historyItems');
 
 // 日付フィルターの変更を監視
-dateFilter.addEventListener('change', updateHistory);
+if (dateFilter) {
+  dateFilter.addEventListener('change', updateHistory);
+}
 
 // 履歴の更新
 function updateHistory() {
+  if (!dateFilter || !historyItems) return;
+  
   const filteredHistory = filterHistory(history, dateFilter.value);
   updateStats(filteredHistory);
   displayHistoryItems(filteredHistory);
@@ -43,7 +47,9 @@ function filterHistory(history, filter) {
 
 // 統計情報の更新
 function updateStats(filteredHistory) {
-  const totalMinutes = filteredHistory.reduce((sum, item) => sum + item.duration / 60, 0);
+  if (!totalTimeDisplay || !completedPomodorosDisplay) return;
+  
+  const totalMinutes = filteredHistory.reduce((sum, item) => sum + (item.duration || 0) / 60, 0);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = Math.floor(totalMinutes % 60);
   totalTimeDisplay.textContent = `${hours}時間${minutes}分`;
@@ -52,7 +58,18 @@ function updateStats(filteredHistory) {
 
 // 履歴アイテムの表示
 function displayHistoryItems(filteredHistory) {
+  if (!historyItems) return;
+  
   historyItems.innerHTML = '';
+  
+  if (filteredHistory.length === 0) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'empty-history';
+    emptyMessage.textContent = 'この期間に記録はありません';
+    historyItems.appendChild(emptyMessage);
+    return;
+  }
+  
   filteredHistory.reverse().forEach(item => {
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
@@ -66,15 +83,124 @@ function displayHistoryItems(filteredHistory) {
       minute: '2-digit'
     });
 
+    // フォーマットを改善
     historyItem.innerHTML = `
-      <span class="date">${dateStr}</span>
-      <span class="duration">${item.duration / 60}分</span>
-      <span class="points">+${item.points}ポイント</span>
+      <div class="history-item-date">
+        <span class="date">${dateStr}</span>
+      </div>
+      <div class="history-item-details">
+        <span class="duration">${(item.duration || 0) / 60}分</span>
+        <span class="points">+${item.points || 0}ポイント</span>
+      </div>
     `;
 
     historyItems.appendChild(historyItem);
+    
+    // アニメーション効果追加
+    setTimeout(() => {
+      historyItem.classList.add('visible');
+    }, 50 * filteredHistory.indexOf(item));
   });
 }
 
+// チャートの初期化
+function initHistoryCharts() {
+  const ctx = document.getElementById('historyChartWeekly');
+  if (ctx) {
+    const weeklyData = getWeeklyData();
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: weeklyData.labels,
+        datasets: [{
+          label: '完了したポモドーロ',
+          data: weeklyData.values,
+          backgroundColor: 'rgba(0, 122, 255, 0.6)',
+          borderColor: 'rgba(0, 122, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+// 週間データの取得
+function getWeeklyData() {
+  const labels = [];
+  const values = [];
+  const today = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    
+    const dayName = date.toLocaleDateString('ja-JP', { weekday: 'short' });
+    const dayDate = date.getDate();
+    labels.push(`${dayName} ${dayDate}`);
+    
+    const count = history.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate.getDate() === date.getDate() && 
+             itemDate.getMonth() === date.getMonth() && 
+             itemDate.getFullYear() === date.getFullYear();
+    }).length;
+    
+    values.push(count);
+  }
+  
+  return { labels, values };
+}
+
+// CSVエクスポート機能
+function exportHistoryToCSV() {
+  if (history.length === 0) {
+    alert('エクスポートするデータがありません');
+    return;
+  }
+  
+  let csvContent = "日付,時間,セッション時間（分）,獲得ポイント\n";
+  
+  history.forEach(item => {
+    const date = new Date(item.date);
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString();
+    const duration = (item.duration || 0) / 60;
+    const points = item.points || 0;
+    
+    csvContent += `${dateStr},${timeStr},${duration},${points}\n`;
+  });
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `pomodoro_history_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// エクスポートボタンにイベントリスナーを追加
+const exportBtn = document.getElementById('exportBtn');
+if (exportBtn) {
+  exportBtn.addEventListener('click', exportHistoryToCSV);
+}
+
 // 初期表示
-updateHistory(); 
+document.addEventListener('DOMContentLoaded', () => {
+  updateHistory();
+  initHistoryCharts();
+});
