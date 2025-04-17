@@ -9,8 +9,14 @@ let timeLeft = WORK_TIME;
 let timerId = null;
 let points = 0;
 let level = 1;
+let levelProgress = 0; // レベル進捗の追加
+let sessionCount = 0; // セッションカウントの追加
 let history = JSON.parse(localStorage.getItem('pomodoroHistory')) || [];
 let isBreak = false;
+
+// サウンドの設定
+const timerEndSound = new Audio('sounds/timer-end.mp3');
+const levelUpSound = new Audio('sounds/level-up.mp3');
 
 // DOM要素の取得
 const minutesDisplay = document.getElementById('minutes');
@@ -19,17 +25,22 @@ const startBtn = document.getElementById('startBtn');
 const resetBtn = document.getElementById('resetBtn');
 const pointsDisplay = document.getElementById('points');
 const levelDisplay = document.getElementById('level');
-const logList = document.getElementById('logList');
+const historyList = document.getElementById('historyList');
 const progressRing = document.querySelector('.progress-ring__circle-progress');
 const minimizeBtn = document.querySelector('.minimize-btn');
 const container = document.querySelector('.container');
 const minimizedTimer = document.getElementById('minimizedTimer');
+const levelProgressBar = document.querySelector('.level-progress-bar');
+const nextLevelInfo = document.getElementById('nextLevelInfo');
 
 // 設定関連の要素
 const workTimeInput = document.getElementById('workTime');
 const breakTimeInput = document.getElementById('breakTime');
 const longBreakTimeInput = document.getElementById('longBreakTime');
 const sessionsInput = document.getElementById('sessionsBeforeLongBreak');
+
+// サウンド設定の要素
+const soundEnabledCheckbox = document.getElementById('soundEnabled');
 
 // カレンダー関連の要素
 const prevMonthBtn = document.getElementById('prevMonth');
@@ -98,6 +109,11 @@ function showPage(pageId) {
       nav.classList.add('active');
     }
   });
+  
+  // ページが切り替わったときにグラフを更新
+  if (pageId === 'history-page') {
+    updateCharts();
+  }
 }
 
 navItems.forEach(item => {
@@ -115,11 +131,17 @@ function updateTimer() {
   secondsDisplay.textContent = seconds.toString().padStart(2, '0');
   
   // プログレスリングの更新
-  const offset = circumference - (timeLeft / (isBreak ? BREAK_TIME : WORK_TIME)) * circumference;
+  const maxTime = isBreak ? 
+    (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
+    WORK_TIME;
+  const offset = circumference - (timeLeft / maxTime) * circumference;
   progressRing.style.strokeDashoffset = offset;
   
   // 縮小時のタイマーも更新
   updateMinimizedTimer();
+  
+  // タイトルも更新してタブで分かるようにする
+  document.title = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} - ポモドーロ`;
 }
 
 // タイマーの開始
@@ -132,13 +154,21 @@ function startTimer() {
       if (timeLeft <= 0) {
         clearInterval(timerId);
         timerId = null;
-        if (isBreak) {
-          currentSession++;
-          startWorkSession();
-    } else {
-          completePomodoro();
+        
+        // タイマー終了音を再生
+        if (soundEnabledCheckbox && soundEnabledCheckbox.checked) {
+          timerEndSound.play().catch(e => console.log('音声再生エラー:', e));
         }
-    }
+        
+        if (isBreak) {
+          // 休憩終了時の処理
+          startWorkSession();
+        } else {
+          // 作業終了時の処理
+          completePomodoro();
+          startBreakSession();
+        }
+      }
     }, 1000);
     startBtn.textContent = '一時停止';
   } else {
@@ -154,23 +184,31 @@ function startWorkSession() {
   timeLeft = WORK_TIME;
   updateTimer();
   startBtn.textContent = 'スタート';
-  document.body.style.backgroundColor = '#F5F5F7';
+  document.body.classList.remove('break-mode');
+  // 縮小画面でも状態が分かるように
+  container.classList.remove('break-mode');
 }
 
 // 休憩セッションの開始
 function startBreakSession() {
   isBreak = true;
+  currentSession++;
+  // 長い休憩か通常の休憩かを判断
   timeLeft = currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME;
   updateTimer();
   startBtn.textContent = 'スタート';
-  document.body.style.backgroundColor = '#E8F5E9';
+  document.body.classList.add('break-mode');
+  // 縮小画面でも状態が分かるように
+  container.classList.add('break-mode');
 }
 
 // タイマーのリセット
 function resetTimer() {
   clearInterval(timerId);
   timerId = null;
-  timeLeft = isBreak ? BREAK_TIME : WORK_TIME;
+  timeLeft = isBreak ? 
+    (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
+    WORK_TIME;
   updateTimer();
   startBtn.textContent = 'スタート';
 }
@@ -178,59 +216,183 @@ function resetTimer() {
 // ポモドーロ完了
 function completePomodoro() {
   sessionCount++;
-  // 作業時間に基づいてポイントを計算（作業時間×10）
-  const pointsEarned = WORK_TIME * 10;
+  
+  // 作業時間に基づいてポイントを計算（基本ポイント + ボーナスポイント）
+  const pointsEarned = 10; // 基本ポイント
   points += pointsEarned;
   levelProgress += pointsEarned;
   
   // レベルアップチェック
   if (levelProgress >= 100) {
     level++;
-    levelProgress = 0;
+    levelProgress = levelProgress - 100; // 余剰ポイントを次のレベルに持ち越し
+    
     // レベルアップエフェクトを追加
     document.querySelector('.level-circle').classList.add('level-up');
     setTimeout(() => {
       document.querySelector('.level-circle').classList.remove('level-up');
     }, 1000);
+    
+    // レベルアップサウンドを再生
+    if (soundEnabledCheckbox && soundEnabledCheckbox.checked) {
+      levelUpSound.play().catch(e => console.log('音声再生エラー:', e));
+    }
+    
+    // レベルアップメッセージを表示
+    showLevelUpMessage();
   }
   
   // 表示の更新
   pointsDisplay.textContent = points;
   levelDisplay.textContent = level;
-  levelProgressBar.style.transform = `rotate(${levelProgress * 3.6}deg)`;
-  
-  // ログの追加
-  const logItem = document.createElement('li');
-  logItem.textContent = `セッション ${sessionCount} 完了 - ${new Date().toLocaleTimeString()} (+${pointsEarned}ポイント)`;
-  logList.insertBefore(logItem, logList.firstChild);
+  updatePointsBar();
   
   // 履歴の追加
   addHistory();
+  
+  // グラフを更新
+  updateCharts();
+}
+
+// ポイントバーの更新
+function updatePointsBar() {
+  if (levelProgressBar) {
+    levelProgressBar.style.transform = `rotate(${levelProgress * 3.6}deg)`;
+  }
+  
+  if (nextLevelInfo) {
+    nextLevelInfo.textContent = `次のレベルまで: ${100 - levelProgress}ポイント`;
+  }
+}
+
+// レベルアップメッセージの表示
+function showLevelUpMessage() {
+  const messageElement = document.createElement('div');
+  messageElement.className = 'level-up-message';
+  messageElement.innerHTML = `
+    <h2>レベルアップ！</h2>
+    <p>おめでとうございます！レベル${level}に到達しました。</p>
+    <div class="confetti-container"></div>
+  `;
+  
+  document.body.appendChild(messageElement);
+  
+  // 紙吹雪エフェクト
+  for (let i = 0; i < 30; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = `${Math.random() * 100}%`;
+    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+    confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    messageElement.querySelector('.confetti-container').appendChild(confetti);
+  }
+  
+  // 数秒後にメッセージを消す
+  setTimeout(() => {
+    messageElement.remove();
+  }, 3000);
 }
 
 // 履歴の追加
 function addHistory() {
   const now = new Date();
   const historyItem = {
-    date: now.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }),
-    time: now.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    points: points
+    date: now.toISOString(), // 日付をISO形式で保存
+    duration: WORK_TIME, // 作業時間（秒単位）
+    points: 10, // 獲得ポイント
+    isComplete: true
   };
   
   history.unshift(historyItem);
-  if (history.length > 10) {
-    history.pop();
+  saveHistory();
+  updateHistoryDisplay();
+}
+
+// 履歴の保存
+function saveHistory() {
+  localStorage.setItem('pomodoroHistory', JSON.stringify(history));
+}
+
+// 履歴表示の更新
+function updateHistoryDisplay() {
+  if (!historyList) return;
+  
+  historyList.innerHTML = '';
+  
+  // 最新の5件だけ表示
+  const recentHistory = history.slice(0, 5);
+  
+  recentHistory.forEach(item => {
+    const date = new Date(item.date);
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="history-date">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+      <span class="history-duration">${Math.floor(item.duration / 60)}分</span>
+      <span class="history-points">+${item.points}ポイント</span>
+    `;
+    historyList.appendChild(li);
+  });
+}
+
+// カレンダーの初期化
+function initCalendar() {
+  const now = new Date();
+  updateCalendar(now.getFullYear(), now.getMonth());
+}
+
+// カレンダーの更新
+function updateCalendar(year, month) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const firstDayOfWeek = firstDay.getDay();
+  
+  currentMonthDisplay.textContent = `${year}年${month + 1}月`;
+  calendarGrid.innerHTML = '';
+  
+  // 曜日の表示
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  weekdays.forEach(day => {
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-weekday';
+    dayElement.textContent = day;
+    calendarGrid.appendChild(dayElement);
+  });
+  
+  // 先月の残りの日を表示
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day prev-month';
+    calendarGrid.appendChild(dayElement);
   }
   
-  updateHistory();
-  saveHistory();
+  // 今月の日を表示
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    dayElement.textContent = i;
+    
+    // その日のポモドーロデータがあるかチェック
+    const currentDate = new Date(year, month, i);
+    const hasData = history.some(item => {
+      const itemDate = new Date(item.date);
+      return itemDate.getDate() === currentDate.getDate() 
+        && itemDate.getMonth() === currentDate.getMonth()
+        && itemDate.getFullYear() === currentDate.getFullYear();
+    });
+    
+    if (hasData) {
+      dayElement.classList.add('has-data');
+    }
+    
+    // 今日の日付をハイライト
+    const today = new Date();
+    if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+      dayElement.classList.add('today');
+    }
+    
+    calendarGrid.appendChild(dayElement);
+  }
 }
 
 // グラフの更新
@@ -250,64 +412,68 @@ function updateCharts() {
 // グラフの初期化
 function initCharts() {
   // 週間統計グラフ
-  const statsCtx = document.getElementById('statsChart').getContext('2d');
-  const last7Days = getLast7DaysData();
-  
-  window.statsChart = new Chart(statsCtx, {
-    type: 'bar',
-    data: {
-      labels: last7Days.map(day => day.date),
-      datasets: [{
-        label: 'ポモドーロ数',
-        data: last7Days.map(day => day.count),
-        backgroundColor: 'rgba(0, 122, 255, 0.5)',
-        borderColor: 'rgba(0, 122, 255, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1
+  const statsCtx = document.getElementById('statsChart');
+  if (statsCtx) {
+    const last7Days = getLast7DaysData();
+    
+    window.statsChart = new Chart(statsCtx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: last7Days.map(day => day.date),
+        datasets: [{
+          label: 'ポモドーロ数',
+          data: last7Days.map(day => day.count),
+          backgroundColor: 'rgba(0, 122, 255, 0.5)',
+          borderColor: 'rgba(0, 122, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
           }
         }
       }
-    }
-  });
+    });
+  }
   
   // レベル進捗グラフ
-  const levelCtx = document.getElementById('levelChart').getContext('2d');
-  const levelData = getLevelData();
-  
-  window.levelChart = new Chart(levelCtx, {
-    type: 'line',
-    data: {
-      labels: levelData.map(item => item.date),
-      datasets: [{
-        label: 'レベル',
-        data: levelData.map(item => item.level),
-        borderColor: 'rgba(0, 122, 255, 1)',
-        tension: 0.4,
-        fill: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1
+  const levelCtx = document.getElementById('levelChart');
+  if (levelCtx) {
+    const levelData = getLevelData();
+    
+    window.levelChart = new Chart(levelCtx.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: levelData.map(item => item.date),
+        datasets: [{
+          label: 'レベル',
+          data: levelData.map(item => item.level),
+          borderColor: 'rgba(0, 122, 255, 1)',
+          tension: 0.4,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
           }
         }
       }
-    }
-  });
+    });
+  }
 }
 
 // 過去7日間のデータを取得
@@ -331,21 +497,74 @@ function getLast7DaysData() {
 // レベルデータを取得
 function getLevelData() {
   const result = [];
-  const levelHistory = [];
+  
+  // 履歴があまりない場合はダミーデータを使用
+  if (history.length < 3) {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dayBefore = new Date();
+    dayBefore.setDate(dayBefore.getDate() - 2);
+    
+    result.push({ 
+      date: dayBefore.toLocaleDateString(),
+      level: level - 2 > 0 ? level - 2 : 1
+    });
+    
+    result.push({ 
+      date: yesterday.toLocaleDateString(),
+      level: level - 1 > 0 ? level - 1 : 1
+    });
+    
+    result.push({ 
+      date: today.toLocaleDateString(),
+      level: level
+    });
+    
+    return result;
+  }
+  
+  // 実際のデータから計算
   let currentLevel = 1;
   let currentPoints = 0;
+  const levelHistory = [];
+  
+  // 日付ごとにグループ化
+  const dateGroups = {};
   
   history.forEach(item => {
-    currentPoints += 10;
+    const date = new Date(item.date).toLocaleDateString();
+    if (!dateGroups[date]) {
+      dateGroups[date] = { date, points: 0 };
+    }
+    dateGroups[date].points += item.points;
+  });
+  
+  // ソートして日付順に処理
+  const sortedDates = Object.values(dateGroups).sort((a, b) => 
+    new Date(a.date) - new Date(b.date)
+  );
+  
+  sortedDates.forEach(dayData => {
+    currentPoints += dayData.points;
     const newLevel = Math.floor(currentPoints / 100) + 1;
+    
     if (newLevel > currentLevel) {
       currentLevel = newLevel;
       levelHistory.push({
-        date: new Date(item.date).toLocaleDateString(),
+        date: dayData.date,
         level: currentLevel
       });
     }
   });
+  
+  // 最新のレベルを追加（変化がない場合）
+  if (levelHistory.length === 0 || levelHistory[levelHistory.length - 1].level !== currentLevel) {
+    levelHistory.push({
+      date: new Date().toLocaleDateString(),
+      level: currentLevel
+    });
+  }
   
   return levelHistory;
 }
@@ -357,41 +576,65 @@ function updateSettings() {
   LONG_BREAK_TIME = parseInt(longBreakTimeInput.value) * 60;
   SESSIONS_BEFORE_LONG_BREAK = parseInt(sessionsInput.value);
   
+  // 設定を保存
+  localStorage.setItem('workTime', workTimeInput.value);
+  localStorage.setItem('breakTime', breakTimeInput.value);
+  localStorage.setItem('longBreakTime', longBreakTimeInput.value);
+  localStorage.setItem('sessionsBeforeLongBreak', sessionsInput.value);
+  
+  // 現在のタイマーをリセット
   if (!isBreak) {
     timeLeft = WORK_TIME;
-    updateTimer();
+  } else {
+    timeLeft = currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME;
   }
+  updateTimer();
 }
 
-// 最小化機能
-minimizeBtn.addEventListener('click', () => {
-  container.classList.toggle('minimized');
-  minimizeBtn.textContent = container.classList.contains('minimized') ? '+' : '−';
+// 縮小時のタイマー更新関数
+function updateMinimizedTimer() {
+  if (!minimizedTimer) return;
   
   if (container.classList.contains('minimized')) {
-    // 縮小時のタイマー表示を更新
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    minimizedTimer.innerHTML = `
-      <div class="progress-ring">
-        <svg class="progress-ring__circle" width="180" height="180">
-          <circle class="progress-ring__circle-bg" cx="90" cy="90" r="85" />
-          <circle class="progress-ring__circle-progress" cx="90" cy="90" r="85" />
-        </svg>
-        <div class="timer">
-          <span>${minutes.toString().padStart(2, '0')}</span>:<span>${seconds.toString().padStart(2, '0')}</span>
-        </div>
-      </div>
-      <div class="minimized-controls">
-        <button id="minimizedStartBtn">${timerId ? '一時停止' : 'スタート'}</button>
-        <button id="minimizedResetBtn">リセット</button>
-      </div>
+    
+    // 既存の内容をクリア
+    minimizedTimer.innerHTML = '';
+    
+    // 新しい内容を追加
+    const timerDiv = document.createElement('div');
+    timerDiv.className = 'timer';
+    timerDiv.innerHTML = `<span>${minutes.toString().padStart(2, '0')}</span>:<span>${seconds.toString().padStart(2, '0')}</span>`;
+    minimizedTimer.appendChild(timerDiv);
+    
+    // プログレスリングを追加
+    const svgContainer = document.createElement('div');
+    svgContainer.className = 'progress-ring';
+    svgContainer.innerHTML = `
+      <svg class="progress-ring__circle" width="180" height="180">
+        <circle class="progress-ring__circle-bg" cx="90" cy="90" r="85" />
+        <circle class="progress-ring__circle-progress" cx="90" cy="90" r="85" />
+      </svg>
     `;
+    minimizedTimer.appendChild(svgContainer);
+    
+    // ミニコントロールを追加
+    const controlsDiv = document.createElement('div');
+    controlsDiv.className = 'minimized-controls';
+    controlsDiv.innerHTML = `
+      <button id="minimizedStartBtn">${timerId ? '一時停止' : 'スタート'}</button>
+      <button id="minimizedResetBtn">リセット</button>
+    `;
+    minimizedTimer.appendChild(controlsDiv);
     
     // プログレスリングの更新
     const progressRing = minimizedTimer.querySelector('.progress-ring__circle-progress');
+    const maxTime = isBreak ? 
+      (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
+      WORK_TIME;
     const circumference = 85 * 2 * Math.PI;
-    const offset = circumference - (timeLeft / (isBreak ? BREAK_TIME : WORK_TIME)) * circumference;
+    const offset = circumference - (timeLeft / maxTime) * circumference;
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
     progressRing.style.strokeDashoffset = offset;
     
@@ -412,45 +655,4 @@ minimizeBtn.addEventListener('click', () => {
       updateMinimizedTimer();
     });
   }
-});
-
-// 縮小時のタイマー更新関数
-function updateMinimizedTimer() {
-  if (container.classList.contains('minimized')) {
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    const timer = minimizedTimer.querySelector('.timer');
-    timer.innerHTML = `<span>${minutes.toString().padStart(2, '0')}</span>:<span>${seconds.toString().padStart(2, '0')}</span>`;
-    
-    const progressRing = minimizedTimer.querySelector('.progress-ring__circle-progress');
-    const circumference = 85 * 2 * Math.PI;
-    const offset = circumference - (timeLeft / (isBreak ? BREAK_TIME : WORK_TIME)) * circumference;
-    progressRing.style.strokeDashoffset = offset;
-  }
 }
-
-// イベントリスナーの設定
-startBtn.addEventListener('click', startTimer);
-resetBtn.addEventListener('click', resetTimer);
-prevMonthBtn.addEventListener('click', () => {
-  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
-});
-nextMonthBtn.addEventListener('click', () => {
-  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
-});
-
-// 設定の変更を監視
-workTimeInput.addEventListener('change', updateSettings);
-breakTimeInput.addEventListener('change', updateSettings);
-longBreakTimeInput.addEventListener('change', updateSettings);
-sessionsInput.addEventListener('change', updateSettings);
-
-// 初期表示
-updateTimer();
-updatePointsBar();
-initCalendar();
-initCharts();
