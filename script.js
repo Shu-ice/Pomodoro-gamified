@@ -30,7 +30,7 @@ const progressRing = document.querySelector('.progress-ring__circle-progress');
 const minimizeBtn = document.querySelector('.minimize-btn');
 const container = document.querySelector('.container');
 const minimizedTimer = document.getElementById('minimizedTimer');
-const levelProgressBar = document.querySelector('.level-progress-bar');
+const levelProgressBar = document.querySelector('.points-bar');
 const nextLevelInfo = document.getElementById('nextLevelInfo');
 
 // 設定関連の要素
@@ -222,16 +222,22 @@ function completePomodoro() {
   points += pointsEarned;
   levelProgress += pointsEarned;
   
+  // ポイント獲得のアニメーション
+  pointsDisplay.classList.add('point-gain');
+  setTimeout(() => {
+    pointsDisplay.classList.remove('point-gain');
+  }, 300);
+  
   // レベルアップチェック
   if (levelProgress >= 100) {
     level++;
     levelProgress = levelProgress - 100; // 余剰ポイントを次のレベルに持ち越し
     
     // レベルアップエフェクトを追加
-    document.querySelector('.level-circle').classList.add('level-up');
+    levelDisplay.classList.add('level-up');
     setTimeout(() => {
-      document.querySelector('.level-circle').classList.remove('level-up');
-    }, 1000);
+      levelDisplay.classList.remove('level-up');
+    }, 800);
     
     // レベルアップサウンドを再生
     if (soundEnabledCheckbox && soundEnabledCheckbox.checked) {
@@ -257,7 +263,7 @@ function completePomodoro() {
 // ポイントバーの更新
 function updatePointsBar() {
   if (levelProgressBar) {
-    levelProgressBar.style.transform = `rotate(${levelProgress * 3.6}deg)`;
+    levelProgressBar.style.width = `${levelProgress}%`;
   }
   
   if (nextLevelInfo) {
@@ -322,6 +328,14 @@ function updateHistoryDisplay() {
   // 最新の5件だけ表示
   const recentHistory = history.slice(0, 5);
   
+  if (recentHistory.length === 0) {
+    const emptyMessage = document.createElement('li');
+    emptyMessage.className = 'empty-history';
+    emptyMessage.textContent = '履歴はまだありません';
+    historyList.appendChild(emptyMessage);
+    return;
+  }
+  
   recentHistory.forEach(item => {
     const date = new Date(item.date);
     const li = document.createElement('li');
@@ -331,6 +345,11 @@ function updateHistoryDisplay() {
       <span class="history-points">+${item.points}ポイント</span>
     `;
     historyList.appendChild(li);
+    
+    // アニメーション効果を追加
+    setTimeout(() => {
+      li.classList.add('visible');
+    }, 50);
   });
 }
 
@@ -385,6 +404,17 @@ function updateCalendar(year, month) {
     
     if (hasData) {
       dayElement.classList.add('has-data');
+      
+      // その日のセッション数を取得して表示
+      const sessions = history.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate.getDate() === currentDate.getDate() 
+          && itemDate.getMonth() === currentDate.getMonth()
+          && itemDate.getFullYear() === currentDate.getFullYear();
+      }).length;
+      
+      // ポモドーロ数をツールチップとして表示
+      dayElement.title = `${sessions}回のポモドーロ`;
     }
     
     // 今日の日付をハイライト
@@ -427,7 +457,8 @@ function initCharts() {
           data: last7Days.map(day => day.count),
           backgroundColor: 'rgba(0, 122, 255, 0.5)',
           borderColor: 'rgba(0, 122, 255, 1)',
-          borderWidth: 1
+          borderWidth: 1,
+          borderRadius: 6,
         }]
       },
       options: {
@@ -439,6 +470,11 @@ function initCharts() {
             ticks: {
               stepSize: 1
             }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           }
         }
       }
@@ -458,8 +494,12 @@ function initCharts() {
           label: 'レベル',
           data: levelData.map(item => item.level),
           borderColor: 'rgba(0, 122, 255, 1)',
+          backgroundColor: 'rgba(0, 122, 255, 0.1)',
           tension: 0.4,
-          fill: false
+          fill: true,
+          pointBackgroundColor: 'rgba(0, 122, 255, 1)',
+          pointRadius: 4,
+          pointHoverRadius: 6
         }]
       },
       options: {
@@ -471,6 +511,11 @@ function initCharts() {
             ticks: {
               stepSize: 1
             }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           }
         }
       }
@@ -614,9 +659,20 @@ function updateMinimizedTimer() {
     const svgContainer = document.createElement('div');
     svgContainer.className = 'progress-ring';
     svgContainer.innerHTML = `
-      <svg class="progress-ring__circle" width="180" height="180">
-        <circle class="progress-ring__circle-bg" cx="90" cy="90" r="85" />
-        <circle class="progress-ring__circle-progress" cx="90" cy="90" r="85" />
+      <svg class="progress-ring__circle" width="140" height="140">
+        <defs>
+          <linearGradient id="minimizedProgressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#007AFF" />
+            <stop offset="100%" stop-color="#00C6FF" />
+          </linearGradient>
+          <linearGradient id="minimizedBreakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#8BC34A" />
+          </linearGradient>
+        </defs>
+        <circle class="progress-ring__circle-bg" cx="70" cy="70" r="65" />
+        <circle class="progress-ring__circle-progress" cx="70" cy="70" r="65" 
+                stroke="${isBreak ? 'url(#minimizedBreakGradient)' : 'url(#minimizedProgressGradient)'}" />
       </svg>
     `;
     minimizedTimer.appendChild(svgContainer);
@@ -635,7 +691,7 @@ function updateMinimizedTimer() {
     const maxTime = isBreak ? 
       (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
       WORK_TIME;
-    const circumference = 85 * 2 * Math.PI;
+    const circumference = 65 * 2 * Math.PI;
     const offset = circumference - (timeLeft / maxTime) * circumference;
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
     progressRing.style.strokeDashoffset = offset;
@@ -685,6 +741,25 @@ if (minimizedTimer) {
   });
 }
 
+// リップルエフェクトの追加
+document.querySelectorAll('.ripple').forEach(button => {
+  button.addEventListener('click', function(e) {
+    const x = e.clientX - e.target.getBoundingClientRect().left;
+    const y = e.clientY - e.target.getBoundingClientRect().top;
+    
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple-effect';
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    
+    this.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  });
+});
+
 // ドキュメントのロード完了時の処理
 document.addEventListener('DOMContentLoaded', () => {
   // 保存されている設定を読み込む
@@ -721,6 +796,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // カレンダーとグラフを初期化
   initCalendar();
   initCharts();
+  
+  // 通知権限のリクエスト
+  if ('Notification' in window) {
+    Notification.requestPermission();
+  }
 });
 
 // イベントリスナーの設定
@@ -743,6 +823,16 @@ if (breakTimeInput) breakTimeInput.addEventListener('change', updateSettings);
 if (longBreakTimeInput) longBreakTimeInput.addEventListener('change', updateSettings);
 if (sessionsInput) sessionsInput.addEventListener('change', updateSettings);
 
+// デスクトップ通知の送信
+function sendNotification(title, message) {
+  if ('Notification' in window && Notification.permission === 'granted' && document.getElementById('desktopNotifications').checked) {
+    new Notification(title, {
+      body: message,
+      icon: '/favicon.ico'
+    });
+  }
+}
+
 // アプリケーション終了時（ページ移動・タブ閉じる時）にデータ保存
 window.addEventListener('beforeunload', () => {
   // ポイント、レベル、進捗を保存
@@ -761,6 +851,6 @@ document.addEventListener('animationComplete', () => {
 
 // 初期表示
 updateTimer();
-if (typeof updatePointsBar === 'function') updatePointsBar();
-if (typeof initCalendar === 'function') initCalendar();
-if (typeof initCharts === 'function') initCharts();
+updatePointsBar();
+initCalendar();
+initCharts();
