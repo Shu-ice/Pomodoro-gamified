@@ -1,4 +1,3 @@
-```javascript
 // タイマーの設定
 let WORK_TIME = 25 * 60; // 25分
 let BREAK_TIME = 5 * 60; // 5分
@@ -473,7 +472,22 @@ function initCharts() {
           y: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1
+              stepSize: 1,
+              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
+            },
+            grid: {
+              color: body.getAttribute('data-theme') === 'dark' ? 
+                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            },
+            suggestedMax: 10 // 最大値を制限して縦に伸びすぎないようにする
+          },
+          x: {
+            ticks: {
+              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
+            },
+            grid: {
+              color: body.getAttribute('data-theme') === 'dark' ? 
+                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             }
           }
         },
@@ -514,7 +528,22 @@ function initCharts() {
           y: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1
+              stepSize: 1,
+              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
+            },
+            grid: {
+              color: body.getAttribute('data-theme') === 'dark' ? 
+                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            },
+            suggestedMax: level + 2 // 現在のレベル+2を最大値にして縦に伸びすぎないようにする
+          },
+          x: {
+            ticks: {
+              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
+            },
+            grid: {
+              color: body.getAttribute('data-theme') === 'dark' ? 
+                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             }
           }
         },
@@ -865,6 +894,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('Notification' in window) {
     Notification.requestPermission();
   }
+  
+  // テーマ変更時のグラフの更新
+  themeToggle.addEventListener('click', () => {
+    // グラフの再初期化でテーマに合わせた色を適用
+    setTimeout(() => {
+      if (document.getElementById('history-page').classList.contains('active')) {
+        updateCharts();
+      }
+    }, 100);
+  });
 });
 
 // イベントリスナーの設定
@@ -918,4 +957,3 @@ updateTimer();
 updatePointsBar();
 initCalendar();
 initCharts();
-```
