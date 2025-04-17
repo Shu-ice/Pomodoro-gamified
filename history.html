@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ポモドーロ履歴</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>ポモドーロ履歴</h1>
+    <div class="header">
+      <h1>ポモドーロ履歴</h1>
+      <button id="themeToggle" class="theme-toggle">🌙</button>
+    </div>
     
     <div class="history-filters">
       <select id="dateFilter">
@@ -17,6 +22,9 @@
         <option value="week">今週</option>
         <option value="month">今月</option>
       </select>
+      <button id="exportBtn" class="export-btn">
+        <i class="fas fa-download"></i> CSVエクスポート
+      </button>
     </div>
 
     <div class="history-stats">
@@ -30,6 +38,11 @@
       </div>
     </div>
 
+    <div class="chart-container">
+      <h2>週間統計</h2>
+      <canvas id="historyChartWeekly"></canvas>
+    </div>
+
     <div class="history-list">
       <h2>詳細履歴</h2>
       <div id="historyItems" class="history-items">
@@ -38,10 +51,12 @@
     </div>
 
     <div class="navigation">
-      <a href="index.html" class="nav-link">タイマーに戻る</a>
+      <a href="index.html" class="nav-link">
+        <i class="fas fa-arrow-left"></i> タイマーに戻る
+      </a>
     </div>
   </div>
 
   <script src="history.js"></script>
 </body>
-</html> 
+</html>
