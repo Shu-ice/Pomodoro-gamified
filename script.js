@@ -42,12 +42,6 @@ const sessionsInput = document.getElementById('sessionsBeforeLongBreak');
 // サウンド設定の要素
 const soundEnabledCheckbox = document.getElementById('soundEnabled');
 
-// カレンダー関連の要素
-const prevMonthBtn = document.getElementById('prevMonth');
-const nextMonthBtn = document.getElementById('nextMonth');
-const currentMonthDisplay = document.getElementById('currentMonth');
-const calendarGrid = document.getElementById('calendarGrid');
-
 // グラフ関連
 const statsChart = document.getElementById('statsChart');
 let chart;
@@ -89,6 +83,13 @@ themeToggle.addEventListener('click', () => {
   body.setAttribute('data-theme', newTheme);
   themeToggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
   localStorage.setItem('theme', newTheme);
+  
+  // グラフの再初期化でテーマに合わせた色を適用
+  setTimeout(() => {
+    if (document.getElementById('history-page').classList.contains('active')) {
+      updateCharts();
+    }
+  }, 100);
 });
 
 // ページ遷移
@@ -113,6 +114,7 @@ function showPage(pageId) {
   // ページが切り替わったときにグラフを更新
   if (pageId === 'history-page') {
     updateCharts();
+    updateStatsSummary();
   }
 }
 
@@ -145,7 +147,8 @@ function updateTimer() {
   updateMinimizedTimer();
   
   // タイトルも更新してタブで分かるようにする
-  document.title = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} - ポモドーロ`;
+  const sessionType = isBreak ? '休憩' : '作業';
+  document.title = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} - ${sessionType}`;
 }
 
 // タイマーの開始
@@ -182,28 +185,40 @@ function startTimer() {
   }
 }
 
-// 作業セッションの開始
+// 作業セッションの開始（自動スタート機能追加）
 function startWorkSession() {
   isBreak = false;
   timeLeft = WORK_TIME;
   updateTimer();
-  startBtn.textContent = 'スタート';
   document.body.classList.remove('break-mode');
-  // 縮小画面でも状態が分かるように
   container.classList.remove('break-mode');
+  
+  // 自動開始するように変更
+  if (document.getElementById('autoStartOption') && 
+      document.getElementById('autoStartOption').checked) {
+    startTimer();
+  } else {
+    startBtn.textContent = 'スタート';
+  }
 }
 
-// 休憩セッションの開始
+// 休憩セッションの開始（自動スタート機能追加）
 function startBreakSession() {
   isBreak = true;
   currentSession++;
   // 長い休憩か通常の休憩かを判断
   timeLeft = currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME;
   updateTimer();
-  startBtn.textContent = 'スタート';
   document.body.classList.add('break-mode');
-  // 縮小画面でも状態が分かるように
   container.classList.add('break-mode');
+  
+  // 自動開始するように変更
+  if (document.getElementById('autoStartOption') && 
+      document.getElementById('autoStartOption').checked) {
+    startTimer();
+  } else {
+    startBtn.textContent = 'スタート';
+  }
 }
 
 // タイマーのリセット
@@ -262,6 +277,7 @@ function completePomodoro() {
   
   // グラフを更新
   updateCharts();
+  updateStatsSummary();
 }
 
 // ポイントバーの更新
@@ -357,78 +373,64 @@ function updateHistoryDisplay() {
   });
 }
 
-// カレンダーの初期化
-function initCalendar() {
+// 統計サマリーの更新
+function updateStatsSummary() {
+  const totalSessionsElem = document.getElementById('totalSessions');
+  const totalTimeElem = document.getElementById('totalTime');
+  const totalPointsElem = document.getElementById('totalPoints');
+  const streakDaysElem = document.getElementById('streakDays');
+  
+  if (!totalSessionsElem || !totalTimeElem || !totalPointsElem || !streakDaysElem) return;
+  
+  // 合計セッション数
+  const totalSessions = history.length;
+  totalSessionsElem.textContent = totalSessions;
+  
+  // 合計時間の計算（分単位）
+  const totalMinutes = history.reduce((sum, item) => sum + (item.duration || 0) / 60, 0);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = Math.floor(totalMinutes % 60);
+  totalTimeElem.textContent = `${hours}時間${minutes}分`;
+  
+  // 合計ポイント
+  const totalPoints = history.reduce((sum, item) => sum + (item.points || 0), 0);
+  totalPointsElem.textContent = `${totalPoints}pt`;
+  
+  // 継続日数の計算
+  const uniqueDays = new Set();
   const now = new Date();
-  updateCalendar(now.getFullYear(), now.getMonth());
-}
-
-// カレンダーの更新
-function updateCalendar(year, month) {
-  if (!calendarGrid || !currentMonthDisplay) return;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const firstDayOfWeek = firstDay.getDay();
-  
-  currentMonthDisplay.textContent = `${year}年${month + 1}月`;
-  calendarGrid.innerHTML = '';
-  
-  // 曜日の表示
-  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-  weekdays.forEach(day => {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-weekday';
-    dayElement.textContent = day;
-    calendarGrid.appendChild(dayElement);
+  // 今日のエントリがあるか確認
+  const hasTodayEntry = history.some(item => {
+    const itemDate = new Date(item.date);
+    return itemDate.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
   });
   
-  // 先月の残りの日を表示
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day prev-month';
-    calendarGrid.appendChild(dayElement);
+  let streakCount = hasTodayEntry ? 1 : 0;
+  
+  if (hasTodayEntry) {
+    // 過去の日を遡ってチェック
+    let checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() - 1); // 昨日から
+    
+    let continueChecking = true;
+    while (continueChecking) {
+      const hasEntryOnDate = history.some(item => {
+        const itemDate = new Date(item.date);
+        return itemDate.setHours(0, 0, 0, 0) === checkDate.setHours(0, 0, 0, 0);
+      });
+      
+      if (hasEntryOnDate) {
+        streakCount++;
+        checkDate.setDate(checkDate.getDate() - 1); // 前日へ
+      } else {
+        continueChecking = false;
+      }
+    }
   }
   
-  // 今月の日を表示
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day';
-    dayElement.textContent = i;
-    
-    // その日のポモドーロデータがあるかチェック
-    const currentDate = new Date(year, month, i);
-    const hasData = history.some(item => {
-      const itemDate = new Date(item.date);
-      return itemDate.getDate() === currentDate.getDate() 
-        && itemDate.getMonth() === currentDate.getMonth()
-        && itemDate.getFullYear() === currentDate.getFullYear();
-    });
-    
-    if (hasData) {
-      dayElement.classList.add('has-data');
-      
-      // その日のセッション数を取得して表示
-      const sessions = history.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate.getDate() === currentDate.getDate() 
-          && itemDate.getMonth() === currentDate.getMonth()
-          && itemDate.getFullYear() === currentDate.getFullYear();
-      }).length;
-      
-      // ポモドーロ数をツールチップとして表示
-      dayElement.title = `${sessions}回のポモドーロ`;
-    }
-    
-    // 今日の日付をハイライト
-    const today = new Date();
-    if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-      dayElement.classList.add('today');
-    }
-    
-    calendarGrid.appendChild(dayElement);
-  }
+  streakDaysElem.textContent = `${streakCount}日`;
 }
 
 // グラフの更新
@@ -479,7 +481,7 @@ function initCharts() {
               color: body.getAttribute('data-theme') === 'dark' ? 
                 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             },
-            suggestedMax: 10 // 最大値を制限して縦に伸びすぎないようにする
+            suggestedMax: 5 // 最大値をさらに制限
           },
           x: {
             ticks: {
@@ -535,7 +537,8 @@ function initCharts() {
               color: body.getAttribute('data-theme') === 'dark' ? 
                 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             },
-            suggestedMax: level + 2 // 現在のレベル+2を最大値にして縦に伸びすぎないようにする
+            suggestedMin: Math.max(1, level - 2), // 下限を現在レベル-2に
+            suggestedMax: level + 1 // 上限を現在レベル+1に（縦長防止）
           },
           x: {
             ticks: {
@@ -853,6 +856,16 @@ document.querySelectorAll('.ripple').forEach(button => {
   });
 });
 
+// デスクトップ通知の送信
+function sendNotification(title, message) {
+  if ('Notification' in window && Notification.permission === 'granted' && document.getElementById('desktopNotifications').checked) {
+    new Notification(title, {
+      body: message,
+      icon: '/favicon.ico'
+    });
+  }
+}
+
 // ドキュメントのロード完了時の処理
 document.addEventListener('DOMContentLoaded', () => {
   // 保存されている設定を読み込む
@@ -887,54 +900,36 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHistoryDisplay();
   
   // カレンダーとグラフを初期化
-  initCalendar();
   initCharts();
+  updateStatsSummary();
   
   // 通知権限のリクエスト
   if ('Notification' in window) {
     Notification.requestPermission();
   }
   
-  // テーマ変更時のグラフの更新
-  themeToggle.addEventListener('click', () => {
-    // グラフの再初期化でテーマに合わせた色を適用
-    setTimeout(() => {
-      if (document.getElementById('history-page').classList.contains('active')) {
-        updateCharts();
-      }
-    }, 100);
-  });
+  // 自動開始の設定を読み込む
+  const savedAutoStart = localStorage.getItem('autoStartOption') === 'true';
+  const autoStartOption = document.getElementById('autoStartOption');
+  if (autoStartOption) {
+    autoStartOption.checked = savedAutoStart !== false; // デフォルトでON
+    
+    // 設定変更時の保存
+    autoStartOption.addEventListener('change', () => {
+      localStorage.setItem('autoStartOption', autoStartOption.checked);
+    });
+  }
 });
 
 // イベントリスナーの設定
 if (startBtn) startBtn.addEventListener('click', startTimer);
 if (resetBtn) resetBtn.addEventListener('click', resetTimer);
-if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => {
-  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
-});
-if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => {
-  const currentDate = new Date(currentMonthDisplay.textContent.replace('年', '-').replace('月', ''));
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
-});
 
 // 設定の変更を監視
 if (workTimeInput) workTimeInput.addEventListener('change', updateSettings);
 if (breakTimeInput) breakTimeInput.addEventListener('change', updateSettings);
 if (longBreakTimeInput) longBreakTimeInput.addEventListener('change', updateSettings);
 if (sessionsInput) sessionsInput.addEventListener('change', updateSettings);
-
-// デスクトップ通知の送信
-function sendNotification(title, message) {
-  if ('Notification' in window && Notification.permission === 'granted' && document.getElementById('desktopNotifications').checked) {
-    new Notification(title, {
-      body: message,
-      icon: '/favicon.ico'
-    });
-  }
-}
 
 // アプリケーション終了時（ページ移動・タブ閉じる時）にデータ保存
 window.addEventListener('beforeunload', () => {
@@ -947,13 +942,8 @@ window.addEventListener('beforeunload', () => {
   saveHistory();
 });
 
-// カスタムイベント - 円形アニメーション完了時
-document.addEventListener('animationComplete', () => {
-  console.log('アニメーション完了');
-});
-
 // 初期表示
 updateTimer();
 updatePointsBar();
-initCalendar();
+updateStatsSummary();
 initCharts();
