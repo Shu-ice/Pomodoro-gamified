@@ -30,9 +30,20 @@
       <div class="page active" id="timer-page">
         <div class="timer-container">
           <div class="progress-ring">
-            <svg class="progress-ring__circle" width="300" height="300">
-              <circle class="progress-ring__circle-bg" cx="150" cy="150" r="120" />
-              <circle class="progress-ring__circle-progress" cx="150" cy="150" r="120" />
+            <svg class="progress-ring__circle" width="220" height="220">
+              <!-- グラデーション定義 -->
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#007AFF" />
+                  <stop offset="100%" stop-color="#00C6FF" />
+                </linearGradient>
+                <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#4CAF50" />
+                  <stop offset="100%" stop-color="#8BC34A" />
+                </linearGradient>
+              </defs>
+              <circle class="progress-ring__circle-bg" cx="110" cy="110" r="100" />
+              <circle class="progress-ring__circle-progress" cx="110" cy="110" r="100" />
             </svg>
             <div class="timer">
               <span id="minutes">25</span>:<span id="seconds">00</span>
@@ -46,10 +57,15 @@
         </div>
 
         <div class="points-display">
-          <span class="points-label">ポイント</span>
-          <span id="points" class="points-value">0</span>
+          <div>
+            <span class="points-label">ポイント</span>
+            <span id="points" class="points-value">0</span>
+          </div>
+          <div>
+            <span class="points-label">レベル</span>
+            <span id="level" class="points-value">1</span>
+          </div>
           <div class="level-info">
-            <span class="level-label">レベル: <span id="level" class="level-number">1</span></span>
             <div class="points-bar-container">
               <div class="points-bar" style="width: 0%"></div>
             </div>
@@ -60,19 +76,6 @@
 
       <!-- 履歴ページ -->
       <div class="page" id="history-page">
-        <div class="level-display">
-          <div class="level-circle">
-            <span id="level" class="level-number">1</span>
-            <div class="level-progress">
-              <div id="levelProgress" class="level-progress-bar"></div>
-            </div>
-          </div>
-          <div class="level-info">
-            <span class="level-label">レベル</span>
-            <span id="nextLevelInfo" class="next-level-info">次のレベルまで: 100ポイント</span>
-          </div>
-        </div>
-
         <div class="stats-container">
           <div class="calendar">
             <div class="calendar-header">
@@ -175,3 +178,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+```
