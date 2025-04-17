@@ -465,13 +465,11 @@ h1 {
   font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center; /* センタリング追加 */
-  gap: 0.2rem;
+  justify-content: center;
   margin: 0;
   padding: 0;
   line-height: 1;
-  pointer-events: none;
-  width: 100%; /* 幅を100%に設定して水平方向のセンタリングを改善 */
+  width: auto; /* 幅を自動に変更 */
 }
 
 /* コントロールボタンのスタイル */
