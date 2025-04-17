@@ -1,3 +1,4 @@
+```javascript
 // タイマーの設定
 let WORK_TIME = 25 * 60; // 25分
 let BREAK_TIME = 5 * 60; // 5分
@@ -53,7 +54,7 @@ const statsChart = document.getElementById('statsChart');
 let chart;
 
 // プログレスリングの設定
-const radius = progressRing.r.baseVal.value;
+const radius = 100; // 固定値を使用
 const circumference = radius * 2 * Math.PI;
 progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
 progressRing.style.strokeDashoffset = circumference;
@@ -135,7 +136,11 @@ function updateTimer() {
     (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
     WORK_TIME;
   const offset = circumference - (timeLeft / maxTime) * circumference;
-  progressRing.style.strokeDashoffset = offset;
+  
+  // アニメーションをよりスムーズに
+  requestAnimationFrame(() => {
+    progressRing.style.strokeDashoffset = offset;
+  });
   
   // 縮小時のタイマーも更新
   updateMinimizedTimer();
@@ -653,29 +658,80 @@ function updateMinimizedTimer() {
     const timerDiv = document.createElement('div');
     timerDiv.className = 'timer';
     timerDiv.innerHTML = `<span>${minutes.toString().padStart(2, '0')}</span>:<span>${seconds.toString().padStart(2, '0')}</span>`;
-    minimizedTimer.appendChild(timerDiv);
     
-    // プログレスリングを追加
+    // SVG要素を作成
+    const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgElement.setAttribute("class", "progress-ring__circle");
+    svgElement.setAttribute("width", "140");
+    svgElement.setAttribute("height", "140");
+    
+    // Defs要素を作成
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    
+    // プログレスグラデーション
+    const progressGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    progressGrad.setAttribute("id", "minimizedProgressGradient");
+    progressGrad.setAttribute("x1", "0%");
+    progressGrad.setAttribute("y1", "0%");
+    progressGrad.setAttribute("x2", "100%");
+    progressGrad.setAttribute("y2", "0%");
+    
+    const progressStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    progressStop1.setAttribute("offset", "0%");
+    progressStop1.setAttribute("stop-color", "#007AFF");
+    
+    const progressStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    progressStop2.setAttribute("offset", "100%");
+    progressStop2.setAttribute("stop-color", "#00C6FF");
+    
+    progressGrad.appendChild(progressStop1);
+    progressGrad.appendChild(progressStop2);
+    
+    // 休憩グラデーション
+    const breakGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    breakGrad.setAttribute("id", "minimizedBreakGradient");
+    breakGrad.setAttribute("x1", "0%");
+    breakGrad.setAttribute("y1", "0%");
+    breakGrad.setAttribute("x2", "100%");
+    breakGrad.setAttribute("y2", "0%");
+    
+    const breakStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    breakStop1.setAttribute("offset", "0%");
+    breakStop1.setAttribute("stop-color", "#4CAF50");
+    
+    const breakStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    breakStop2.setAttribute("offset", "100%");
+    breakStop2.setAttribute("stop-color", "#8BC34A");
+    
+    breakGrad.appendChild(breakStop1);
+    breakGrad.appendChild(breakStop2);
+    
+    defs.appendChild(progressGrad);
+    defs.appendChild(breakGrad);
+    svgElement.appendChild(defs);
+    
+    // 背景円を作成
+    const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    bgCircle.setAttribute("class", "progress-ring__circle-bg");
+    bgCircle.setAttribute("cx", "70");
+    bgCircle.setAttribute("cy", "70");
+    bgCircle.setAttribute("r", "65");
+    
+    // プログレス円を作成
+    const progressCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    progressCircle.setAttribute("class", "progress-ring__circle-progress");
+    progressCircle.setAttribute("cx", "70");
+    progressCircle.setAttribute("cy", "70");
+    progressCircle.setAttribute("r", "65");
+    progressCircle.setAttribute("stroke", isBreak ? "url(#minimizedBreakGradient)" : "url(#minimizedProgressGradient)");
+    
+    svgElement.appendChild(bgCircle);
+    svgElement.appendChild(progressCircle);
+    
+    // SVGコンテナを作成
     const svgContainer = document.createElement('div');
     svgContainer.className = 'progress-ring';
-    svgContainer.innerHTML = `
-      <svg class="progress-ring__circle" width="140" height="140">
-        <defs>
-          <linearGradient id="minimizedProgressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#007AFF" />
-            <stop offset="100%" stop-color="#00C6FF" />
-          </linearGradient>
-          <linearGradient id="minimizedBreakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#4CAF50" />
-            <stop offset="100%" stop-color="#8BC34A" />
-          </linearGradient>
-        </defs>
-        <circle class="progress-ring__circle-bg" cx="70" cy="70" r="65" />
-        <circle class="progress-ring__circle-progress" cx="70" cy="70" r="65" 
-                stroke="${isBreak ? 'url(#minimizedBreakGradient)' : 'url(#minimizedProgressGradient)'}" />
-      </svg>
-    `;
-    minimizedTimer.appendChild(svgContainer);
+    svgContainer.appendChild(svgElement);
     
     // ミニコントロールを追加
     const controlsDiv = document.createElement('div');
@@ -684,6 +740,10 @@ function updateMinimizedTimer() {
       <button id="minimizedStartBtn">${timerId ? '一時停止' : 'スタート'}</button>
       <button id="minimizedResetBtn">リセット</button>
     `;
+    
+    // 要素を追加
+    minimizedTimer.appendChild(timerDiv);
+    minimizedTimer.appendChild(svgContainer);
     minimizedTimer.appendChild(controlsDiv);
     
     // プログレスリングの更新
@@ -694,7 +754,11 @@ function updateMinimizedTimer() {
     const circumference = 65 * 2 * Math.PI;
     const offset = circumference - (timeLeft / maxTime) * circumference;
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
-    progressRing.style.strokeDashoffset = offset;
+    
+    // アニメーションをスムーズに
+    requestAnimationFrame(() => {
+      progressRing.style.strokeDashoffset = offset;
+    });
     
     // 縮小時のコントロールボタンのイベントリスナーを設定
     const minimizedStartBtn = minimizedTimer.querySelector('#minimizedStartBtn');
@@ -854,3 +918,4 @@ updateTimer();
 updatePointsBar();
 initCalendar();
 initCharts();
+```
