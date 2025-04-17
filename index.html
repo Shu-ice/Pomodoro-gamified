@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -29,25 +30,23 @@
       <!-- タイマーページ -->
       <div class="page active" id="timer-page">
         <div class="timer-container">
-          <div class="progress-ring">
-            <svg class="progress-ring__circle" width="220" height="220">
-              <!-- グラデーション定義 -->
-              <defs>
-                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#007AFF" />
-                  <stop offset="100%" stop-color="#00C6FF" />
-                </linearGradient>
-                <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#4CAF50" />
-                  <stop offset="100%" stop-color="#8BC34A" />
-                </linearGradient>
-              </defs>
-              <circle class="progress-ring__circle-bg" cx="110" cy="110" r="100" />
-              <circle class="progress-ring__circle-progress" cx="110" cy="110" r="100" />
-            </svg>
-            <div class="timer">
-              <span id="minutes">25</span>:<span id="seconds">00</span>
-            </div>
+          <svg class="progress-ring__circle" width="220" height="220">
+            <!-- グラデーション定義 -->
+            <defs>
+              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#007AFF" />
+                <stop offset="100%" stop-color="#00C6FF" />
+              </linearGradient>
+              <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4CAF50" />
+                <stop offset="100%" stop-color="#8BC34A" />
+              </linearGradient>
+            </defs>
+            <circle class="progress-ring__circle-bg" cx="110" cy="110" r="100" />
+            <circle class="progress-ring__circle-progress" cx="110" cy="110" r="100" />
+          </svg>
+          <div class="timer">
+            <span id="minutes">25</span>:<span id="seconds">00</span>
           </div>
         </div>
 
