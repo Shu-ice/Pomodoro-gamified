@@ -70,11 +70,20 @@ function displayHistoryItems(filteredHistory) {
     return;
   }
   
-  filteredHistory.reverse().forEach(item => {
+  filteredHistory.reverse().forEach((item, index) => {
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     
-    const date = new Date(item.date);
+    // 日付の処理を改善
+    let date;
+    try {
+      date = new Date(item.date);
+    } catch (e) {
+      // 日付の解析に失敗した場合、現在時刻を使用
+      console.error('日付の解析に失敗しました:', item.date);
+      date = new Date();
+    }
+    
     const dateStr = date.toLocaleString('ja-JP', {
       year: 'numeric',
       month: '2-digit',
@@ -96,10 +105,10 @@ function displayHistoryItems(filteredHistory) {
 
     historyItems.appendChild(historyItem);
     
-    // アニメーション効果追加
+    // アニメーション効果追加（少し遅延させて順番に表示）
     setTimeout(() => {
       historyItem.classList.add('visible');
-    }, 50 * filteredHistory.indexOf(item));
+    }, 50 * index);
   });
 }
 
@@ -173,9 +182,17 @@ function exportHistoryToCSV() {
   let csvContent = "日付,時間,セッション時間（分）,獲得ポイント\n";
   
   history.forEach(item => {
-    const date = new Date(item.date);
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString();
+    let date, dateStr, timeStr;
+    try {
+      date = new Date(item.date);
+      dateStr = date.toLocaleDateString();
+      timeStr = date.toLocaleTimeString();
+    } catch (e) {
+      // 日付の解析に失敗した場合
+      dateStr = "不明";
+      timeStr = "不明";
+    }
+    
     const duration = (item.duration || 0) / 60;
     const points = item.points || 0;
     
@@ -197,6 +214,33 @@ function exportHistoryToCSV() {
 const exportBtn = document.getElementById('exportBtn');
 if (exportBtn) {
   exportBtn.addEventListener('click', exportHistoryToCSV);
+}
+
+// データのリセット機能
+function resetAllData() {
+  if (confirm('すべての履歴データをリセットしますか？この操作は元に戻せません。')) {
+    localStorage.removeItem('pomodoroHistory');
+    localStorage.removeItem('points');
+    localStorage.removeItem('level');
+    localStorage.removeItem('levelProgress');
+    
+    // ページをリロード
+    window.location.reload();
+  }
+}
+
+// リセットボタンにイベントリスナーを追加
+const resetDataBtn = document.getElementById('resetDataBtn');
+if (resetDataBtn) {
+  resetDataBtn.addEventListener('click', resetAllData);
+}
+
+// 履歴詳細への遷移
+const showAllHistoryBtn = document.getElementById('showAllHistoryBtn');
+if (showAllHistoryBtn) {
+  showAllHistoryBtn.addEventListener('click', () => {
+    window.location.href = 'history.html';
+  });
 }
 
 // 初期表示
