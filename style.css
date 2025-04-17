@@ -123,6 +123,10 @@ body {
   border-radius: var(--border-radius);
 }
 
+[data-theme="dark"] .main-nav {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .nav-item {
   background: none;
   border: none;
@@ -718,4 +722,138 @@ body.break-mode {
 /* プログレスリングの休憩モード色 */
 .break-mode .progress-ring__circle-progress {
   stroke: url(#breakGradient);
+}
+
+/* グラフの調整 */
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 600px) {
+  .stats-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.history-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.chart-container {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  height: 180px; /* 高さを調整 */
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .chart-container {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.level-progress-chart {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  height: 180px; /* 高さを調整 */
+}
+
+[data-theme="dark"] .level-progress-chart {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* カレンダーの改善 */
+.calendar {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .calendar {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+/* 曜日表示の修正 */
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0.3rem 0;
+  font-weight: 600;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+  position: relative;
+  color: var(--text-color);
+}
+
+.calendar-day.has-data {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* リップルエフェクト（クリック時の波紋効果） */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: rippleAnim 0.6s linear;
+  z-index: 10;
+}
+
+@keyframes rippleAnim {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 500%;
+    height: 500%;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
 }
