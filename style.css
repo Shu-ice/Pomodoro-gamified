@@ -769,6 +769,51 @@ body.break-mode {
   background: rgba(255, 255, 255, 0.05);
 }
 
+
+/* 統計サマリーのスタイル */
+.stats-summary {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .stats-summary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.stats-summary h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+.stat-item {
+  background: var(--card-background);
+  padding: 0.8rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
 /* カレンダーの改善 */
 .calendar {
   background: rgba(0, 0, 0, 0.05);
