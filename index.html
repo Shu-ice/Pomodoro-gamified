@@ -9,21 +9,15 @@
   <title>ゲーミフィケーションポモドーロ</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    window.onload = function() {
-      const width = 320; // アプリの幅
-      const height = 580; // アプリの高さ
-      window.resizeTo(width, height);
-    };
-  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
-    <button class="minimize-btn">−</button>
+    <button class="minimize-btn" title="最小化/最大化">−</button>
     <div class="content">
       <div class="header">
         <h1>ポモドーロタイマー</h1>
-        <button id="themeToggle" class="theme-toggle">🌙</button>
+        <button id="themeToggle" class="theme-toggle" title="テーマ切替">🌙</button>
       </div>
 
       <nav class="main-nav">
@@ -47,13 +41,20 @@
         </div>
 
         <div class="controls">
-          <button id="startBtn">スタート</button>
-          <button id="resetBtn">リセット</button>
+          <button id="startBtn" class="ripple">スタート</button>
+          <button id="resetBtn" class="ripple">リセット</button>
         </div>
 
         <div class="points-display">
           <span class="points-label">ポイント</span>
           <span id="points" class="points-value">0</span>
+          <div class="level-info">
+            <span class="level-label">レベル: <span id="level" class="level-number">1</span></span>
+            <div class="points-bar-container">
+              <div class="points-bar" style="width: 0%"></div>
+            </div>
+            <span id="nextLevelInfo" class="next-level-info">次のレベルまで: 100ポイント</span>
+          </div>
         </div>
       </div>
 
@@ -79,7 +80,9 @@
               <h3 id="currentMonth">2023年4月</h3>
               <button id="nextMonth">→</button>
             </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="calendar-grid" id="calendarGrid">
+              <!-- カレンダーはJSで生成 -->
+            </div>
           </div>
           <div class="chart-container">
             <canvas id="statsChart"></canvas>
@@ -94,6 +97,7 @@
         <div class="history-list">
           <h3>最近の記録</h3>
           <ul id="historyList"></ul>
+          <button id="showAllHistoryBtn" class="ripple">すべての履歴を見る</button>
         </div>
       </div>
 
@@ -124,7 +128,10 @@
             <h2>表示設定</h2>
             <div class="settings-row">
               <label for="fixedPosition">画面上に固定</label>
-              <input type="checkbox" id="fixedPosition" checked>
+              <label class="switch">
+                <input type="checkbox" id="fixedPosition" checked>
+                <span class="slider"></span>
+              </label>
             </div>
           </div>
 
@@ -132,11 +139,29 @@
             <h2>通知設定</h2>
             <div class="settings-row">
               <label for="soundEnabled">通知音</label>
-              <input type="checkbox" id="soundEnabled" checked>
+              <label class="switch">
+                <input type="checkbox" id="soundEnabled" checked>
+                <span class="slider"></span>
+              </label>
             </div>
             <div class="settings-row">
               <label for="desktopNotifications">デスクトップ通知</label>
-              <input type="checkbox" id="desktopNotifications" checked>
+              <label class="switch">
+                <input type="checkbox" id="desktopNotifications" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h2>データ管理</h2>
+            <div class="settings-actions">
+              <button id="exportBtn" class="export-btn">
+                <i class="fas fa-download"></i> データをエクスポート
+              </button>
+              <button id="resetDataBtn" class="reset-data-btn">
+                <i class="fas fa-trash"></i> データをリセット
+              </button>
             </div>
           </div>
         </div>
