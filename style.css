@@ -919,7 +919,7 @@ body.break-mode {
   80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
 }
-/* 追加：週ナビゲーションのスタイル */
+/* 週移動用のナビゲーションボタン */
 .chart-navigation {
   display: flex;
   align-items: center;
@@ -931,7 +931,7 @@ body.break-mode {
 #weekLabel {
   font-size: 0.9rem;
   font-weight: 500;
-  min-width: 60px;
+  min-width: 70px;
   text-align: center;
 }
 
@@ -962,6 +962,16 @@ body.break-mode {
 .nav-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* 縦軸ラベル */
+.chart-y-axis-label {
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 
 /* 週間統計の改善 */
