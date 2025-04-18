@@ -14,6 +14,9 @@ let sessionCount = 0; // セッションカウントの追加
 let history = JSON.parse(localStorage.getItem('pomodoroHistory')) || [];
 let isBreak = false;
 
+// 追加：週移動用の変数
+let currentWeekOffset = 0;
+
 // サウンドの設定
 const timerEndSound = new Audio('sounds/timer-end.mp3');
 const levelUpSound = new Audio('sounds/level-up.mp3');
@@ -167,6 +170,14 @@ function startTimer() {
           timerEndSound.play().catch(e => console.log('音声再生エラー:', e));
         }
         
+        // Send notification if enabled
+        if (document.getElementById('desktopNotifications') && 
+            document.getElementById('desktopNotifications').checked) {
+          const title = isBreak ? '休憩終了！' : '作業セッション完了！';
+          const message = isBreak ? '作業を始めましょう！' : '休憩の時間です！';
+          sendNotification(title, message);
+        }
+        
         if (isBreak) {
           // 休憩終了時の処理
           startWorkSession();
@@ -193,10 +204,17 @@ function startWorkSession() {
   document.body.classList.remove('break-mode');
   container.classList.remove('break-mode');
   
-  // 自動開始するように変更
-  if (document.getElementById('autoStartOption') && 
-      document.getElementById('autoStartOption').checked) {
-    startTimer();
+  // Updated autostart implementation
+  // Check if autostart is enabled and start the timer
+  const autoStartOption = document.getElementById('autoStartOption');
+  if (autoStartOption && autoStartOption.checked) {
+    // Important: Force timerId to null before starting to avoid issues
+    clearInterval(timerId);
+    timerId = null;
+    // Use setTimeout to avoid potential race conditions
+    setTimeout(() => {
+      startTimer();
+    }, 100);
   } else {
     startBtn.textContent = 'スタート';
   }
@@ -212,10 +230,17 @@ function startBreakSession() {
   document.body.classList.add('break-mode');
   container.classList.add('break-mode');
   
-  // 自動開始するように変更
-  if (document.getElementById('autoStartOption') && 
-      document.getElementById('autoStartOption').checked) {
-    startTimer();
+  // Updated autostart implementation
+  // Check if autostart is enabled and start the timer
+  const autoStartOption = document.getElementById('autoStartOption');
+  if (autoStartOption && autoStartOption.checked) {
+    // Important: Force timerId to null before starting to avoid issues
+    clearInterval(timerId);
+    timerId = null;
+    // Use setTimeout to avoid potential race conditions
+    setTimeout(() => {
+      startTimer();
+    }, 100);
   } else {
     startBtn.textContent = 'スタート';
   }
@@ -433,6 +458,42 @@ function updateStatsSummary() {
   streakDaysElem.textContent = `${streakCount}日`;
 }
 
+// 週の移動のためのボタン用関数
+function navigateWeek(direction) {
+  currentWeekOffset += direction;
+  updateCharts();
+  
+  // ボタンの状態を更新
+  const prevWeekBtn = document.getElementById('prevWeekBtn');
+  if (prevWeekBtn) {
+    // 過去4週までしか表示できないようにする
+    prevWeekBtn.disabled = currentWeekOffset >= 4;
+  }
+  
+  const nextWeekBtn = document.getElementById('nextWeekBtn');
+  if (nextWeekBtn) {
+    // 未来の週には進めないようにする
+    nextWeekBtn.disabled = currentWeekOffset <= 0;
+  }
+  
+  // 表示中の週を示すラベルを更新
+  updateWeekLabel();
+}
+
+// 表示中の週を示すラベルを更新する関数
+function updateWeekLabel() {
+  const weekLabelElem = document.getElementById('weekLabel');
+  if (!weekLabelElem) return;
+  
+  if (currentWeekOffset === 0) {
+    weekLabelElem.textContent = '今週';
+  } else if (currentWeekOffset === 1) {
+    weekLabelElem.textContent = '先週';
+  } else {
+    weekLabelElem.textContent = `${currentWeekOffset}週間前`;
+  }
+}
+
 // グラフの更新
 function updateCharts() {
   // 既存のグラフを破棄
@@ -452,6 +513,34 @@ function initCharts() {
   // 週間統計グラフ
   const statsCtx = document.getElementById('statsChart');
   if (statsCtx) {
+    const chartContainer = statsCtx.closest('.chart-container');
+    
+    // 既存のナビゲーションを削除
+    const existingNav = chartContainer.querySelector('.chart-navigation');
+    if (existingNav) {
+      existingNav.remove();
+    }
+    
+    // ナビゲーションを追加
+    const chartNavigation = document.createElement('div');
+    chartNavigation.className = 'chart-navigation';
+    chartNavigation.innerHTML = `
+      <button id="prevWeekBtn" class="nav-btn" ${currentWeekOffset >= 4 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <span id="weekLabel">${currentWeekOffset === 0 ? '今週' : currentWeekOffset === 1 ? '先週' : `${currentWeekOffset}週間前`}</span>
+      <button id="nextWeekBtn" class="nav-btn" ${currentWeekOffset <= 0 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    `;
+    
+    const chartTitle = chartContainer.querySelector('h3');
+    chartTitle.after(chartNavigation);
+    
+    // イベントリスナーを追加
+    document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(1));
+    document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(-1));
+    
     const last7Days = getLast7DaysData();
     
     window.statsChart = new Chart(statsCtx.getContext('2d'), {
@@ -560,11 +649,16 @@ function initCharts() {
   }
 }
 
-// 過去7日間のデータを取得
+// 過去7日間のデータを取得 - 修正版（週オフセット対応）
 function getLast7DaysData() {
   const result = [];
+  const endDay = new Date();
+  
+  // 表示週のオフセットを適用
+  endDay.setDate(endDay.getDate() - (currentWeekOffset * 7));
+  
   for (let i = 6; i >= 0; i--) {
-    const date = new Date();
+    const date = new Date(endDay);
     date.setDate(date.getDate() - i);
     const dateString = `${date.getMonth() + 1}/${date.getDate()}`;
     
