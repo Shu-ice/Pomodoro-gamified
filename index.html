@@ -87,38 +87,20 @@
   </div>
 
   <div class="stats-container">
-    <!-- 統計情報 -->
-    <div class="stats-summary">
-      <h3>累計統計</h3>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-label">合計セッション</div>
-          <div id="totalSessions" class="stat-value">0</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">合計時間</div>
-          <div id="totalTime" class="stat-value">0時間</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">合計ポイント</div>
-          <div id="totalPoints" class="stat-value">0pt</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">継続日数</div>
-          <div id="streakDays" class="stat-value">0日</div>
-        </div>
-      </div>
-    </div>
     <div class="chart-container">
       <h3>週間統計</h3>
-      <!-- 週ナビゲーションはJSで動的に追加 -->
+      <div class="chart-navigation">
+        <button id="prevWeekBtn" class="nav-btn">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <span id="weekLabel">今週</span>
+        <button id="nextWeekBtn" class="nav-btn">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
       <canvas id="statsChart"></canvas>
+      <div class="chart-y-axis-label">単位：分</div>
     </div>
-  </div>
-
-  <div class="level-progress-chart">
-    <h3>レベル進捗</h3>
-    <canvas id="levelChart"></canvas>
   </div>
 
   <div class="history-list">
@@ -127,19 +109,6 @@
     <button id="showAllHistoryBtn" class="ripple">すべての履歴を見る</button>
   </div>
 </div>
-
-        <div class="level-progress-chart">
-          <h3>レベル進捗</h3>
-          <canvas id="levelChart"></canvas>
-        </div>
-
-        <div class="history-list">
-          <h3>最近の記録</h3>
-          <ul id="historyList"></ul>
-          <button id="showAllHistoryBtn" class="ripple">すべての履歴を見る</button>
-        </div>
-      </div>
-
       <!-- 設定ページ -->
       <div class="page" id="settings-page">
         <div class="settings-panel">
