@@ -261,6 +261,7 @@ function resetTimer() {
 
 // ポモドーロ完了
 function completePomodoro() {
+  // 作業時間のみをセッションカウント
   sessionCount++;
   
   // 作業時間に基づいてポイントを計算（基本ポイント + ボーナスポイント）
