@@ -250,9 +250,11 @@ function startBreakSession() {
 function resetTimer() {
   clearInterval(timerId);
   timerId = null;
-  timeLeft = isBreak ? 
-    (currentSession % SESSIONS_BEFORE_LONG_BREAK === 0 ? LONG_BREAK_TIME : BREAK_TIME) : 
-    WORK_TIME;
+  // リセット時は常に作業時間から始まるように修正
+  isBreak = false;
+  timeLeft = WORK_TIME;
+  document.body.classList.remove('break-mode');
+  container.classList.remove('break-mode');
   updateTimer();
   startBtn.textContent = 'スタート';
 }
