@@ -551,8 +551,8 @@ function initCharts() {
       data: {
         labels: last7Days.map(day => day.date),
         datasets: [{
-          label: 'ポモドーロ数',
-          data: last7Days.map(day => day.count),
+          label: 'ポモドーロ数（分）',
+          data: last7Days.map(day => day.count * 25), // 単位を分に変換（25分 × セッション数）
           backgroundColor: 'rgba(0, 122, 255, 0.5)',
           borderColor: 'rgba(0, 122, 255, 1)',
           borderWidth: 1,
@@ -566,14 +566,20 @@ function initCharts() {
           y: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1,
-              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
+              stepSize: 25, // 25分単位に変更
+              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333',
+              callback: function(value) {
+                return value + '分'; // 単位を表示
+              }
             },
             grid: {
               color: body.getAttribute('data-theme') === 'dark' ? 
                 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             },
-            suggestedMax: 5 // 最大値をさらに制限
+            title: {
+              display: true,
+              text: '作業時間（分）'
+            }
           },
           x: {
             ticks: {
@@ -592,64 +598,29 @@ function initCharts() {
         }
       }
     });
+  }
+}
+
+// 週の移動のためのボタン用関数
+function navigateWeek(direction) {
+  currentWeekOffset += direction;
+  updateCharts();
+  
+  // ボタンの状態を更新
+  const prevWeekBtn = document.getElementById('prevWeekBtn');
+  if (prevWeekBtn) {
+    // 過去の週へは無制限に表示できるように制限を緩和
+    prevWeekBtn.disabled = false;
   }
   
-  // レベル進捗グラフ
-  const levelCtx = document.getElementById('levelChart');
-  if (levelCtx) {
-    const levelData = getLevelData();
-    
-    window.levelChart = new Chart(levelCtx.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: levelData.map(item => item.date),
-        datasets: [{
-          label: 'レベル',
-          data: levelData.map(item => item.level),
-          borderColor: 'rgba(0, 122, 255, 1)',
-          backgroundColor: 'rgba(0, 122, 255, 0.1)',
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: 'rgba(0, 122, 255, 1)',
-          pointRadius: 4,
-          pointHoverRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
-            },
-            grid: {
-              color: body.getAttribute('data-theme') === 'dark' ? 
-                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            },
-            suggestedMin: Math.max(1, level - 2), // 下限を現在レベル-2に
-            suggestedMax: level + 1 // 上限を現在レベル+1に（縦長防止）
-          },
-          x: {
-            ticks: {
-              color: body.getAttribute('data-theme') === 'dark' ? '#fff' : '#333'
-            },
-            grid: {
-              color: body.getAttribute('data-theme') === 'dark' ? 
-                'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false
-          }
-        }
-      }
-    });
+  const nextWeekBtn = document.getElementById('nextWeekBtn');
+  if (nextWeekBtn) {
+    // 未来の週には進めないようにする
+    nextWeekBtn.disabled = currentWeekOffset <= 0;
   }
+  
+  // 表示中の週を示すラベルを更新
+  updateWeekLabel();
 }
 
 // 過去7日間のデータを取得 - 修正版（週オフセット対応）
