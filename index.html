@@ -71,49 +71,62 @@
         </div>
       </div>
 
-      <!-- 履歴ページ -->
-      <div class="page" id="history-page">
-        <div class="level-display">
-          <div class="level-circle">
-            <span id="level" class="level-number">1</span>
-            <div class="level-progress">
-              <div id="levelProgress" class="level-progress-bar"></div>
-            </div>
-          </div>
-          <div class="level-info">
-            <span class="level-label">レベル</span>
-            <span id="nextLevelInfo" class="next-level-info">次のレベルまで: 100ポイント</span>
-          </div>
-        </div>
+<!-- 履歴ページ -->
+<div class="page" id="history-page">
+  <div class="level-display">
+    <div class="level-circle">
+      <span id="level" class="level-number">1</span>
+      <div class="level-progress">
+        <div id="levelProgress" class="level-progress-bar"></div>
+      </div>
+    </div>
+    <div class="level-info">
+      <span class="level-label">レベル</span>
+      <span id="nextLevelInfo" class="next-level-info">次のレベルまで: 100ポイント</span>
+    </div>
+  </div>
 
-        <div class="stats-container">
-          <!-- カレンダーを削除して統計情報に置き換え -->
-          <div class="stats-summary">
-            <h3>累計統計</h3>
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-label">合計セッション</div>
-                <div id="totalSessions" class="stat-value">0</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">合計時間</div>
-                <div id="totalTime" class="stat-value">0時間</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">合計ポイント</div>
-                <div id="totalPoints" class="stat-value">0pt</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">継続日数</div>
-                <div id="streakDays" class="stat-value">0日</div>
-              </div>
-            </div>
-          </div>
-          <div class="chart-container">
-            <h3>週間統計</h3>
-            <canvas id="statsChart"></canvas>
-          </div>
+  <div class="stats-container">
+    <!-- 統計情報 -->
+    <div class="stats-summary">
+      <h3>累計統計</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">合計セッション</div>
+          <div id="totalSessions" class="stat-value">0</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-label">合計時間</div>
+          <div id="totalTime" class="stat-value">0時間</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">合計ポイント</div>
+          <div id="totalPoints" class="stat-value">0pt</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">継続日数</div>
+          <div id="streakDays" class="stat-value">0日</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <h3>週間統計</h3>
+      <!-- 週ナビゲーションはJSで動的に追加 -->
+      <canvas id="statsChart"></canvas>
+    </div>
+  </div>
+
+  <div class="level-progress-chart">
+    <h3>レベル進捗</h3>
+    <canvas id="levelChart"></canvas>
+  </div>
+
+  <div class="history-list">
+    <h3>最近の記録</h3>
+    <ul id="historyList"></ul>
+    <button id="showAllHistoryBtn" class="ripple">すべての履歴を見る</button>
+  </div>
+</div>
 
         <div class="level-progress-chart">
           <h3>レベル進捗</h3>
