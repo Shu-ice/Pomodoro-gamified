@@ -911,3 +911,249 @@ body.break-mode {
   80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
 }
+/* 追加：週ナビゲーションのスタイル */
+.chart-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+  gap: 0.8rem;
+}
+
+#weekLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.nav-btn {
+  background: rgba(0, 0, 0, 0.08);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 週間統計の改善 */
+.chart-container {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  height: 220px; /* 高さを少し増やす */
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+
+[data-theme="dark"] .chart-container {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chart-container h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* レベル進捗チャートの改善 */
+.level-progress-chart {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.2rem;
+  height: 220px; /* 高さを揃える */
+}
+
+[data-theme="dark"] .level-progress-chart {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.level-progress-chart h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* レベル表示のスタイル改善 */
+.level-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--border-radius);
+}
+
+[data-theme="dark"] .level-display {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 統計サマリーのスタイル改善 */
+.stats-summary {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.2rem;
+}
+
+[data-theme="dark"] .stats-summary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.stats-summary h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+/* 統計カードのスタイル改善 */
+.stat-item {
+  background: var(--card-background);
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.stat-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .stat-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* 履歴リストの改善 */
+.history-list {
+  margin-bottom: 1.2rem;
+}
+
+.history-list h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+#historyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#historyList li {
+  background: var(--card-background);
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.8rem;
+  border-radius: var(--border-radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+#historyList li.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.history-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.history-duration {
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.history-points {
+  font-weight: 500;
+  color: #4CAF50;
+  display: inline-block;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* 「すべての履歴を見る」ボタンのスタイル改善 */
+#showAllHistoryBtn {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 0.8rem;
+  border-radius: var(--border-radius);
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+#showAllHistoryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+/* レスポンシブ対応の改善 */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .chart-container, .level-progress-chart {
+    height: 180px;
+  }
+}
