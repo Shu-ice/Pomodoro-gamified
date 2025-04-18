@@ -442,6 +442,7 @@ button:active {
 }
 
 /* 最小化状態のスタイル */
+/* 最小化状態のスタイル */
 .container.minimized {
   height: 180px;
   width: 180px;
@@ -458,19 +459,6 @@ button:active {
   bottom: 20px;
 }
 
-.container.minimized:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transform: translateY(-3px);
-}
-
-.container.minimized .minimize-btn {
-  top: 5px;
-  right: 5px;
-  font-size: 0.9rem;
-  width: 20px;
-  height: 20px;
-}
-
 .container.minimized .content {
   display: none;
 }
@@ -485,14 +473,34 @@ button:active {
   position: relative;
 }
 
-.container.minimized .progress-ring {
-  width: 140px;
-  height: 140px;
+.minimized-view {
+  display: none;
+}
+
+.container.minimized .minimized-view {
+  display: flex;
 }
 
 .container.minimized .timer {
   font-size: 1.6rem;
-  pointer-events: none;
+}
+
+.minimized-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+  width: 90%;
+  justify-content: center;
+}
+
+.minimized-controls button {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 /* 履歴アイテムの改良 */
