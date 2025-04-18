@@ -782,7 +782,7 @@ function updateMinimizedTimer() {
     // 既存の内容をクリア
     minimizedTimer.innerHTML = '';
     
-    // 新しい内容を追加
+    // タイマー表示のみを追加
     const timerDiv = document.createElement('div');
     timerDiv.className = 'timer';
     timerDiv.innerHTML = `<span>${minutes.toString().padStart(2, '0')}</span>:<span>${seconds.toString().padStart(2, '0')}</span>`;
@@ -861,17 +861,16 @@ function updateMinimizedTimer() {
     svgContainer.className = 'progress-ring';
     svgContainer.appendChild(svgElement);
     
-    // ミニコントロールを追加
+    // シンプルなコントロールボタンを追加（スタート/一時停止のみ）
     const controlsDiv = document.createElement('div');
     controlsDiv.className = 'minimized-controls';
     controlsDiv.innerHTML = `
       <button id="minimizedStartBtn">${timerId ? '一時停止' : 'スタート'}</button>
-      <button id="minimizedResetBtn">リセット</button>
     `;
     
     // 要素を追加
-    minimizedTimer.appendChild(timerDiv);
     minimizedTimer.appendChild(svgContainer);
+    minimizedTimer.appendChild(timerDiv);
     minimizedTimer.appendChild(controlsDiv);
     
     // プログレスリングの更新
@@ -890,47 +889,13 @@ function updateMinimizedTimer() {
     
     // 縮小時のコントロールボタンのイベントリスナーを設定
     const minimizedStartBtn = minimizedTimer.querySelector('#minimizedStartBtn');
-    const minimizedResetBtn = minimizedTimer.querySelector('#minimizedResetBtn');
     
     minimizedStartBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       startTimer();
       minimizedStartBtn.textContent = timerId ? '一時停止' : 'スタート';
     });
-    
-    minimizedResetBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      resetTimer();
-      minimizedStartBtn.textContent = 'スタート';
-      updateMinimizedTimer();
-    });
   }
-}
-
-// 最小化機能
-minimizeBtn.addEventListener('click', () => {
-  container.classList.toggle('minimized');
-  minimizeBtn.textContent = container.classList.contains('minimized') ? '+' : '−';
-  
-  if (container.classList.contains('minimized')) {
-    // 縮小時のタイマー表示を更新
-    updateMinimizedTimer();
-  } else {
-    // 通常表示に戻したときの処理
-    minimizedTimer.innerHTML = ''; // 内容をクリア
-  }
-});
-
-// 縮小表示をクリックすると元に戻る機能
-if (minimizedTimer) {
-  minimizedTimer.addEventListener('click', (e) => {
-    // ボタンのクリックイベントがバブリングしないように
-    if (e.target.tagName !== 'BUTTON') {
-      container.classList.remove('minimized');
-      minimizeBtn.textContent = '−';
-      minimizedTimer.innerHTML = ''; // 内容をクリア
-    }
-  });
 }
 
 // リップルエフェクトの追加
